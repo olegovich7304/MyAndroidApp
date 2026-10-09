@@ -1,92 +1,122 @@
 package com.example.myapplication
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import com.example.myapplication.ui.theme.MyApplicationTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
         setContent {
             MyApplicationTheme {
-                MyApplicationApp()
-            }
-        }
-    }
-}
-
-@PreviewScreenSizes
-@Composable
-fun MyApplicationApp() {
-    var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
-
-    NavigationSuiteScaffold(
-        navigationSuiteItems = {
-            AppDestinations.entries.forEach {
-                item(
-                    icon = {
-                        Icon(
-                            painterResource(it.icon),
-                            contentDescription = it.label
-                        )
-                    },
-                    label = { Text(it.label) },
-                    selected = it == currentDestination,
-                    onClick = { currentDestination = it }
+                MainScreen(
+                    onOpenSecond = { text ->
+                        val intent = Intent(this, SecondActivity::class.java)
+                        intent.putExtra("message", text)
+                        startActivity(intent)
+                    }
                 )
             }
         }
-    ) {
-        Scaffold(modifier = Modifier.fillMaxSize(), containerColor = Color.Green) { innerPadding ->
-            Greeting(
-                name = "Andrey",
-                modifier = Modifier.padding(innerPadding)
-            )
-        }
     }
 }
 
-enum class AppDestinations(
-    val label: String,
-    val icon: Int,
-) {
-    HOME("Home", R.drawable.ic_home),
-    FAVORITES("Favorites", R.drawable.ic_favorite),
-    PROFILE("Profile", R.drawable.ic_account_box),
-}
-
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name! This my first app!!",
-        modifier = modifier
-    )
-}
+fun MainScreen(onOpenSecond: (String) -> Unit) {
+    var text by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    MyApplicationTheme {
-        Greeting("Andrey")
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = "Практическое задание 3",
+            style = MaterialTheme.typography.headlineSmall
+        )
+
+        OutlinedTextField(
+            value = text,
+            onValueChange = { text = it },
+            label = { Text("Текст или номер телефона") },
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text
+            )
+        )
+
+        Button(
+            onClick = {
+                if (text.isBlank()) {
+                    Toast.makeText(
+                        context, "Введите текст", Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    onOpenSecond(text)
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Открыть вторую Activity")
+        }
+
+        Button(
+            onClick = {
+                val phone = text.trim()
+
+                if (!phone.matches(Regex("""\+?[0-9 ()-]{5,20}"""))) {
+                    Toast.makeText(
+                        context, "Введите корректный номер телефона",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    val cleanPhone = phone.replace(Regex("[ ()-]"), "")
+                    val intent = Intent(Intent.ACTION_DIAL)
+                    intent.data = Uri.parse("tel:$cleanPhone")
+                    context.startActivity(intent)
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Позвонить другу")
+        }
+
+        Button(
+            onClick = {
+                if (text.isBlank()) {
+                    Toast.makeText(
+                        context, "Введите текст для отправки",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, text)
+                    }
+
+                    context.startActivity(
+                        Intent.createChooser(intent, "Поделиться через")
+                    )
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Поделиться текстом")
+        }
     }
 }
