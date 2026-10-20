@@ -1,20 +1,69 @@
 package com.example.myapplication
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.myapplication.ui.theme.MyApplicationTheme
+
+data class AppItem(
+    val name: String,
+    val description: String,
+    val category: String,
+    val icon: String,
+    val color: Color
+)
+
+val applications = listOf(
+    AppItem(
+        "YouTube", "Просмотр видео и каналов",
+        "Развлечения", "Y", Color(0xFFFF0033)
+    ),
+    AppItem(
+        "Telegram", "Сообщения и звонки",
+        "Общение", "T", Color(0xFF229ED9)
+    ),
+    AppItem(
+        "Spotify", "Музыка и подкасты",
+        "Музыка", "S", Color(0xFF1DB954)
+    ),
+    AppItem(
+        "Google Maps", "Карты и навигация",
+        "Путешествия", "M", Color(0xFF4285F4)
+    ),
+    AppItem(
+        "Gmail", "Электронная почта",
+        "Работа", "G", Color(0xFFEA4335)
+    ),
+    AppItem(
+        "Duolingo", "Изучение иностранных языков",
+        "Образование", "D", Color(0xFF58CC02)
+    )
+)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,101 +71,165 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MyApplicationTheme {
-                MainScreen(
-                    onOpenSecond = { text ->
-                        val intent = Intent(this, SecondActivity::class.java)
-                        intent.putExtra("message", text)
-                        startActivity(intent)
-                    }
-                )
+                AppCatalogScreen()
             }
         }
     }
 }
 
 @Composable
-fun MainScreen(onOpenSecond: (String) -> Unit) {
-    var text by remember { mutableStateOf("") }
-    val context = LocalContext.current
-
+fun AppCatalogScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .background(Color(0xFFF4F5F7))
     ) {
-        Text(
-            text = "Практическое задание 3",
-            style = MaterialTheme.typography.headlineSmall
-        )
+        AppToolbar()
 
-        OutlinedTextField(
-            value = text,
-            onValueChange = { text = it },
-            label = { Text("Текст или номер телефона") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Text
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = "Популярные приложения",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF202124)
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+
+            items(applications) { app ->
+                AppCard(app)
+            }
+        }
+    }
+}
+
+@Composable
+fun AppToolbar() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFF6750A4))
+            .padding(horizontal = 20.dp, vertical = 18.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(42.dp)
+                .background(
+                    Color.White,
+                    RoundedCornerShape(12.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "A",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF6750A4)
             )
+        }
+
+        Column(
+            modifier = Modifier.padding(start = 14.dp)
+        ) {
+            Text(
+                text = "App Catalog",
+                fontSize = 21.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+
+            Text(
+                text = "Каталог приложений",
+                fontSize = 13.sp,
+                color = Color.White
+            )
+        }
+    }
+}
+
+@Composable
+fun AppCard(app: AppItem) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp
         )
-
-        Button(
-            onClick = {
-                if (text.isBlank()) {
-                    Toast.makeText(
-                        context, "Введите текст", Toast.LENGTH_SHORT
-                    ).show()
-                } else {
-                    onOpenSecond(text)
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Открыть вторую Activity")
-        }
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .background(
+                        app.color,
+                        RoundedCornerShape(14.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = app.icon,
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
 
-        Button(
-            onClick = {
-                val phone = text.trim()
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 14.dp)
+            ) {
+                Text(
+                    text = app.name,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF202124)
+                )
 
-                if (!phone.matches(Regex("""\+?[0-9 ()-]{5,20}"""))) {
-                    Toast.makeText(
-                        context, "Введите корректный номер телефона",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } else {
-                    val cleanPhone = phone.replace(Regex("[ ()-]"), "")
-                    val intent = Intent(Intent.ACTION_DIAL)
-                    intent.data = Uri.parse("tel:$cleanPhone")
-                    context.startActivity(intent)
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Позвонить другу")
-        }
+                Spacer(modifier = Modifier.height(4.dp))
 
-        Button(
-            onClick = {
-                if (text.isBlank()) {
-                    Toast.makeText(
-                        context, "Введите текст для отправки",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } else {
-                    val intent = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, text)
-                    }
+                Text(
+                    text = app.description,
+                    fontSize = 14.sp,
+                    color = Color(0xFF5F6368)
+                )
 
-                    context.startActivity(
-                        Intent.createChooser(intent, "Поделиться через")
-                    )
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Поделиться текстом")
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = app.category,
+                    fontSize = 12.sp,
+                    color = Color(0xFF6750A4),
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier
+                        .background(
+                            Color(0xFFEDE7F6),
+                            RoundedCornerShape(6.dp)
+                        )
+                        .padding(
+                            horizontal = 8.dp,
+                            vertical = 4.dp
+                        )
+                )
+            }
         }
     }
 }
